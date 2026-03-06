@@ -1,7 +1,6 @@
 import chromadb
 from chromadb.config import Settings
 
-
 COLLECTION_NAME = "documents"
 
 
@@ -20,7 +19,7 @@ def get_collection(client: chromadb.HttpClient):
     )
 
 
-def store_chunks(doc_id: str, chunks: list[dict]) -> int:
+def store_chunks(doc_id: str, chunks: list[dict], embeddings: list[list[float]]) -> int:
     client = get_client()
     collection = get_collection(client)
 
@@ -41,8 +40,30 @@ def store_chunks(doc_id: str, chunks: list[dict]) -> int:
 
     collection.upsert(
         ids=ids,
+        embeddings=embeddings,
         documents=documents,
         metadatas=metadatas,
     )
 
     return len(ids)
+
+
+def search(query_embedding: list[float], n_results: int = 5) -> list[dict]:
+    client = get_client()
+    collection = get_collection(client)
+
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=n_results,
+        include=["documents", "metadatas", "distances"],
+    )
+
+    output = []
+    for text, meta, dist in zip(
+        results["documents"][0],
+        results["metadatas"][0],
+        results["distances"][0],
+    ):
+        output.append({"text": text, "metadata": meta, "distance": dist})
+
+    return output

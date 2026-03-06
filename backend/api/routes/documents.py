@@ -3,9 +3,12 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
+from pydantic import BaseModel
 
 from backend.core.rag.parser import parse_pdf
-from backend.core.storage.vector_store import store_chunks
+from backend.core.rag.embedder import embed_text
+from backend.core.rag.llm import ask
+from backend.core.storage.vector_store import store_chunks, search
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -25,11 +28,32 @@ async def upload_pdf(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, f)
 
     chunks = parse_pdf(dest)
-    stored = store_chunks(doc_id, chunks)
+
+    embeddings = [embed_text(chunk["text"]) for chunk in chunks]
+    stored = store_chunks(doc_id, chunks, embeddings)
 
     return {
         "doc_id": doc_id,
         "filename": file.filename,
-        "chunks_parsed": len(chunks),
         "chunks_stored": stored,
+    }
+
+
+class QueryRequest(BaseModel):
+    question: str
+    n_results: int = 5
+
+
+@router.post("/query")
+def query(req: QueryRequest):
+    query_embedding = embed_text(req.question)
+    results = search(query_embedding, n_results=req.n_results)
+
+    context_chunks = [r["text"] for r in results]
+    answer = ask(req.question, context_chunks)
+
+    return {
+        "question": req.question,
+        "answer": answer,
+        "sources": results,
     }

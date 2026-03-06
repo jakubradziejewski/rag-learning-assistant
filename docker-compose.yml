@@ -12,8 +12,6 @@ services:
       - "model-runner.docker.internal:host-gateway"
     depends_on:
       - chromadb
-    models:
-      - embedding-model
 
   chromadb:
     image: chromadb/chroma:latest
@@ -24,12 +22,6 @@ services:
       - chroma_data:/data
     environment:
       - ANONYMIZED_TELEMETRY=FALSE
-
-models:
-  embedding-model:
-    model: ai/mxbai-embed-large
-    runtime_flags:
-      - "--embeddings"
 
 volumes:
   chroma_data:
