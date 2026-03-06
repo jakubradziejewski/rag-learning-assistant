@@ -5,6 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from backend.core.rag.parser import parse_pdf
+from backend.core.storage.vector_store import store_chunks
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -24,10 +25,11 @@ async def upload_pdf(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, f)
 
     chunks = parse_pdf(dest)
+    stored = store_chunks(doc_id, chunks)
 
     return {
         "doc_id": doc_id,
         "filename": file.filename,
         "chunks_parsed": len(chunks),
-        "chunks": chunks,
+        "chunks_stored": stored,
     }
