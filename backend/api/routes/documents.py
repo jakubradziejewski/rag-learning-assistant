@@ -42,6 +42,7 @@ async def upload_pdf(file: UploadFile = File(...)):
 class QueryRequest(BaseModel):
     question: str
     n_results: int = 5
+    temperature: float = 0.0
 
 
 @router.post("/query")
@@ -50,10 +51,18 @@ def query(req: QueryRequest):
     results = search(query_embedding, n_results=req.n_results)
 
     context_chunks = [r["text"] for r in results]
-    answer = ask(req.question, context_chunks)
+    answer = ask(req.question, context_chunks, temperature=req.temperature)
 
     return {
         "question": req.question,
         "answer": answer,
-        "sources": results,
+        "sources": [
+            {
+                "text": r["text"],
+                "section": r["metadata"].get("section_path", ""),
+                "pages": r["metadata"].get("page_numbers", ""),
+                "relevance_score": round(1 - r["distance"], 3),
+            }
+            for r in results
+        ],
     }
