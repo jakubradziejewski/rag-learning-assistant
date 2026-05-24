@@ -17,7 +17,11 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 
 @router.post("/upload")
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_pdf(
+    file: UploadFile = File(...),
+    include_chunks: bool = False,
+    max_chunks: int | None = None,
+):
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
@@ -32,11 +36,18 @@ async def upload_pdf(file: UploadFile = File(...)):
     embeddings = [embed_text(chunk["text"]) for chunk in chunks]
     stored = store_chunks(doc_id, chunks, embeddings)
 
-    return {
+    response = {
         "doc_id": doc_id,
         "filename": file.filename,
         "chunks_stored": stored,
     }
+
+    if include_chunks:
+        limited = chunks if max_chunks is None else chunks[: max_chunks]
+        response["chunks"] = limited
+        response["chunks_returned"] = len(limited)
+
+    return response
 
 
 class QueryRequest(BaseModel):

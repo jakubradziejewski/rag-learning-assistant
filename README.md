@@ -51,6 +51,27 @@ docker compose up --build
 ```
 
 Open **http://localhost:8000/docs**
+Open **http://localhost:8501** for the Streamlit UI.
+
+## Streamlit (spaced repetition MVP)
+
+This UI lets you upload PDFs, generate questions/flashcards per chunk, and run a daily FSRS review session stored in JSON.
+
+With `docker compose up`, Streamlit runs automatically at **http://localhost:8501**.
+
+If you want to run Streamlit on the host (outside Docker), set:
+```bash
+export DMR_BASE_URL="http://localhost:12434/engines/llama.cpp/v1"
+export CHROMADB_HOST="localhost"
+export CHROMADB_PORT="8001"
+```
+
+Then run:
+```bash
+uv run streamlit run streamlit_app.py
+```
+
+Study data is stored at `data/srs_state.json` (gitignored).
 
 ## API
 

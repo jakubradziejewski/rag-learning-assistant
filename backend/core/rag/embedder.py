@@ -1,7 +1,14 @@
+import os
+
 from openai import OpenAI
 
+DMR_BASE_URL = os.getenv(
+    "DMR_BASE_URL",
+    "http://model-runner.docker.internal:12434/engines/llama.cpp/v1",
+)
+
 client = OpenAI(
-    base_url="http://model-runner.docker.internal:12434/engines/llama.cpp/v1",
+    base_url=DMR_BASE_URL,
     api_key="ignored",
 )
 

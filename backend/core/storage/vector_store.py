@@ -1,3 +1,5 @@
+import os
+
 import chromadb
 from chromadb.config import Settings
 
@@ -5,9 +7,11 @@ COLLECTION_NAME = "documents"
 
 
 def get_client() -> chromadb.HttpClient:
+    host = os.getenv("CHROMADB_HOST", "chromadb")
+    port = int(os.getenv("CHROMADB_PORT", "8000"))
     return chromadb.HttpClient(
-        host="chromadb",
-        port=8000,
+        host=host,
+        port=port,
         settings=Settings(anonymized_telemetry=False),
     )
 
