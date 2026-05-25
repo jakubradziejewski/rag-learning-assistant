@@ -68,6 +68,13 @@ def _normalize_card(card: Card) -> None:
         except AttributeError:
             pass
 
+    difficulty = getattr(card, "difficulty", None)
+    if difficulty is None or difficulty <= 0:
+        try:
+            card.difficulty = 5.0
+        except AttributeError:
+            pass
+
 
 def card_to_dict(card: Card) -> dict[str, Any]:
     return {
@@ -86,14 +93,27 @@ def new_card_dict() -> dict[str, Any]:
     return card_to_dict(Card())
 
 
+def _rating_from_names(preferred: list[str], fallback_index: int) -> Rating:
+    for name in preferred:
+        if hasattr(Rating, name):
+            return getattr(Rating, name)
+
+    ratings = list(Rating)
+    if not ratings:
+        raise RuntimeError("Unsupported fsrs Rating enum")
+
+    index = max(0, min(fallback_index, len(ratings) - 1))
+    return ratings[index]
+
+
 def map_rating(score: int) -> Rating:
     if score <= 1:
-        return Rating.Again
+        return _rating_from_names(["Again", "Fail", "Forgot"], 0)
     if score == 2:
-        return Rating.Hard
+        return _rating_from_names(["Hard"], 1)
     if score == 3:
-        return Rating.Good
-    return Rating.Easy
+        return _rating_from_names(["Good", "Okay", "Fair"], 2)
+    return _rating_from_names(["Easy", "Excellent"], len(list(Rating)) - 1)
 
 
 def review_card(card_dict: dict[str, Any], score: int, now: datetime | None = None) -> dict[str, Any]:

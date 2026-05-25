@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 from openai import OpenAI
 
@@ -48,6 +49,7 @@ def generate_study_items(
     section_path: str = "",
     page_numbers: list[int] | None = None,
 ) -> dict:
+    print(f"Generating study items for chunk (section: '{section_path}', pages: {page_numbers})")
     pages = ", ".join(str(p) for p in (page_numbers or []))
 
     response = client.chat.completions.create(
@@ -60,15 +62,25 @@ def generate_study_items(
                     "You generate study materials. "
                     "Return JSON only, no markdown. "
                     "Keys: question, answer, flashcard_front, flashcard_back, key_points. "
-                    "Write self-contained questions and answers grounded only in the provided chunk. "
-                    "Do not use outside knowledge or introduce unrelated topics. "
+                    "Write self-contained questions and answers based on the chunk and related real-world knowledge. "
+                    "Do not introduce unrelated topics. "
                     "Make flashcard_front specific and unambiguous (include scope or qualifiers from the chunk). "
-                    "Ensure flashcard_back includes 2-3 concrete details or terms found in the chunk. "
-                    "Do not reference the source text or lecture context with pronouns or deictic phrases "
-                    "(no 'she', 'he', 'they', 'this', 'that', 'the slide', 'the lecture', 'the example'). "
+                    "Make flashcard_back directly answer the prompt and include 2-3 concrete terms from the chunk. "
+                    "Avoid meta-questions like 'requires answering the following questions' and do not list questions in the answer. "
+                    "Do not reference slides/pages or use deictic phrases like 'previous slide', 'this page', or 'as shown'. "
+                    "Do not ask about the lecturer, institute, location, emails, or copyright notices. "
+                    "Avoid vague one-word answers like 'unknown' or 'not specified'. "
+                    "If the chunk is only metadata (names, affiliations, contact info, copyright), set flashcard_front and flashcard_back to empty strings. "
+                    "If the chunk does not define a term, do not invent a definition; instead return empty strings. "
                     "Avoid subjective or opinion questions. "
                     "Make questions specific (definition, mechanism, comparison, or consequence). "
-                    "Answers can be 2-4 sentences when needed, but remain factual."
+                    "Answers can be 2-5 sentences when needed, but remain factual. "
+                    "Avoid questions about dates, places or people. "
+                    "Examples: "
+                    "Bad: flashcard_front='Explain the concept: Specification of a supervised learning problem requires answering the following questions.' "
+                    "Bad: flashcard_back='- What kind of training data is offered? ...' "
+                    "Bad: flashcard_front='Institution of Computing Science' | Good: flashcard_front='' and flashcard_back='' "
+                    "Bad: flashcard_front='Institution of Computing Science?' (entity name only) | Good: flashcard_front='' and flashcard_back='' "
                 ),
             },
             {
@@ -90,7 +102,7 @@ def generate_study_items(
     try:
         return json.loads(content)
     except json.JSONDecodeError:
-        fallback_topic = section_path.strip() or "the topic in this section"
+        fallback_topic = section_path.strip() or _derive_topic(chunk_text)
         return {
             "question": f"Explain the concept: {fallback_topic}.",
             "answer": chunk_text[:800],
@@ -98,3 +110,21 @@ def generate_study_items(
             "flashcard_back": chunk_text[:800],
             "key_points": [],
         }
+
+
+def _derive_topic(chunk_text: str) -> str:
+    for line in chunk_text.splitlines():
+        cleaned = " ".join(line.strip().split())
+        if cleaned:
+            topic = _clean_topic_line(cleaned)
+            if len(topic) > 80:
+                topic = f"{topic[:80].rstrip()}..."
+            return topic.rstrip(".:;!?")
+    return "the topic"
+
+
+def _clean_topic_line(text: str) -> str:
+    topic = text.strip().strip("\"'")
+    topic = re.sub(r"^\[\d+\]\s*", "", topic)
+    topic = re.sub(r"^\d+[\.)]\s*", "", topic)
+    return topic

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections import Counter
 from datetime import datetime, timezone
 import re
 from typing import Any
@@ -13,35 +12,7 @@ _GENERIC_PROMPTS = {
     "summarize the key concept.",
     "what is the main idea of this chunk",
     "what is the main idea of this chunk?",
-}
-
-_STOPWORDS = {
-    "a",
-    "an",
-    "and",
-    "are",
-    "as",
-    "at",
-    "be",
-    "by",
-    "for",
-    "from",
-    "has",
-    "in",
-    "is",
-    "it",
-    "of",
-    "on",
-    "or",
-    "that",
-    "the",
-    "their",
-    "these",
-    "this",
-    "to",
-    "was",
-    "were",
-    "with",
+    "explain the concept: the topic in this section.",
 }
 
 
@@ -50,42 +21,23 @@ def _is_too_generic_prompt(prompt: str) -> bool:
     return normalized in _GENERIC_PROMPTS
 
 
-def _is_too_generic_answer(answer: str) -> bool:
-    normalized = " ".join(answer.lower().strip().split())
-    if len(normalized) < 20:
-        return True
-    return normalized in {
-        "intrinsic vs extrinsic",
-        "intrinsic and extrinsic",
-        "research and development in computer science",
-    }
+def _is_disallowed_prompt(prompt: str) -> bool:
+    normalized = " ".join(prompt.lower().strip().split())
+    return "institution of computing science" in normalized
 
 
-def _extract_keywords(text: str, limit: int = 8) -> list[str]:
-    tokens = re.findall(r"[a-zA-Z][a-zA-Z\-']{2,}", text.lower())
-    filtered = [token for token in tokens if token not in _STOPWORDS]
-    if not filtered:
-        return []
-
-    counts = Counter(filtered)
-    return [token for token, _ in counts.most_common(limit)]
-
-
-def _is_answer_grounded(answer: str, chunk_text: str, section_path: str) -> bool:
-    keywords = _extract_keywords(chunk_text)
-    keywords.extend(_extract_keywords(section_path, limit=4))
-    if not keywords:
-        return True
-
-    answer_lower = answer.lower()
-    return any(re.search(rf"\b{re.escape(keyword)}\b", answer_lower) for keyword in keywords)
+def _clean_topic_line(text: str) -> str:
+    topic = text.strip().strip("\"'")
+    topic = re.sub(r"^\[\d+\]\s*", "", topic)
+    topic = re.sub(r"^\d+[\.)]\s*", "", topic)
+    return topic
 
 
 def _derive_topic(chunk_text: str) -> str:
     for line in chunk_text.splitlines():
         cleaned = " ".join(line.strip().split())
         if cleaned:
-            topic = cleaned.strip().strip("\"'")
+            topic = _clean_topic_line(cleaned)
             if len(topic) > 80:
                 topic = f"{topic[:80].rstrip()}..."
             return topic.rstrip(".:;!?")
@@ -115,16 +67,16 @@ def _normalize_payload(payload: dict[str, Any], chunk_text: str, section_path: s
     if not required.issubset(payload):
         return _fallback_items(chunk_text, section_path)
 
-    flashcard_front = str(payload.get("flashcard_front", ""))
-    flashcard_back = str(payload.get("flashcard_back", ""))
+    flashcard_front = str(payload.get("flashcard_front", "")).strip()
+    flashcard_back = str(payload.get("flashcard_back", "")).strip()
+
+    if not flashcard_front or not flashcard_back:
+        return payload
 
     if _is_too_generic_prompt(flashcard_front):
         return _fallback_items(chunk_text, section_path)
 
-    if _is_too_generic_answer(flashcard_back):
-        return _fallback_items(chunk_text, section_path)
-
-    if not _is_answer_grounded(flashcard_back, chunk_text, section_path):
+    if _is_disallowed_prompt(flashcard_front):
         return _fallback_items(chunk_text, section_path)
 
     return payload

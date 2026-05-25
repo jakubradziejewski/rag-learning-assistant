@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import random
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -41,7 +42,7 @@ with upload_tab:
     max_chunks = st.number_input(
         "Max chunks per PDF for study items",
         min_value=1,
-        value=20,
+        value=50,
         step=1,
         help=(
             "Limits how many parsed chunks are returned for study item generation. "
@@ -116,6 +117,28 @@ with session_tab:
         due_items = [item for item in items if is_due(item["card"], today)]
         due_items.sort(key=lambda item: due_date(item["card"]))
 
+        # Shuffle only within the same due date to keep priority ordering.
+        shuffled_due_items: list[dict] = []
+        bucket: list[dict] = []
+        current_due = None
+        for item in due_items:
+            item_due = due_date(item["card"])
+            if current_due is None:
+                current_due = item_due
+            if item_due != current_due:
+                random.shuffle(bucket)
+                shuffled_due_items.extend(bucket)
+                bucket = [item]
+                current_due = item_due
+            else:
+                bucket.append(item)
+
+        if bucket:
+            random.shuffle(bucket)
+            shuffled_due_items.extend(bucket)
+
+        due_items = shuffled_due_items
+
         st.write(f"Due today: {len(due_items)} | Planned: {min(len(due_items), max_items)}")
 
         if st.button("Start session"):
@@ -145,16 +168,44 @@ with session_tab:
                 if st.session_state.show_answer:
                     st.markdown(f"**Answer:** {current_item['answer']}")
 
-                rating = st.slider("Your rating (1-5)", min_value=1, max_value=5, value=3)
+                rating_labels = [
+                    ("1 Again", 1),
+                    ("2 Hard", 2),
+                    ("3 Good", 3),
+                    ("4 Easy", 4),
+                    ("5 Perfect", 5),
+                ]
+                rating_cols = st.columns(len(rating_labels))
+                rating_clicked = None
+                for index, (label, score) in enumerate(rating_labels):
+                    if rating_cols[index].button(
+                        label,
+                        key=f"rate_{current_id}_{score}",
+                        disabled=not st.session_state.show_answer,
+                    ):
+                        rating_clicked = score
 
-                if st.button("Submit rating"):
-                    print(f"Submitting rating {rating} for item {current_id}")
-                    current_item["card"] = review_card(current_item["card"], rating)
+                if rating_clicked is not None:
+                    print(f"Submitting rating {rating_clicked} for item {current_id}")
+                    current_item["card"] = review_card(current_item["card"], rating_clicked)
                     current_item["last_review"] = datetime.now(timezone.utc).isoformat()
                     state["items"][current_id] = current_item
                     save_state(DATA_PATH, state)
 
                     st.session_state.queue_index += 1
+                    st.session_state.show_answer = False
+                    st.rerun()
+
+                if st.button("Remove this question"):
+                    state["items"].pop(current_id, None)
+                    save_state(DATA_PATH, state)
+
+                    if current_id in st.session_state.queue_ids:
+                        st.session_state.queue_ids.remove(current_id)
+
+                    if st.session_state.queue_index >= len(st.session_state.queue_ids):
+                        st.session_state.queue_index = max(0, len(st.session_state.queue_ids) - 1)
+
                     st.session_state.show_answer = False
                     st.rerun()
         else:

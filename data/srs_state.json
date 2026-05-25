@@ -1,0 +1,383 @@
+{
+  "version": 1,
+  "items": {
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c2_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c2_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 2,
+      "type": "flashcard",
+      "prompt": "Definition of Artificial Intelligence",
+      "answer": "Machine learning, Deep learning, Neural networks",
+      "metadata": {
+        "section_path": "Mi osz Kadzi \u0142 \u0144 ski",
+        "page_numbers": [
+          1
+        ]
+      },
+      "source_text": "Artificial Intellience",
+      "card": {
+        "due": "2026-05-25T20:31:53.424975+00:00",
+        "stability": 0.09517279993343508,
+        "difficulty": 8.341762369296838,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:23:38.502062+00:00",
+      "last_review": "2026-05-25T20:30:53.425054+00:00"
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c3_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c3_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 3,
+      "type": "flashcard",
+      "prompt": "Decision Analysis",
+      "answer": "A systematic approach to analyzing and evaluating options to make informed decisions.",
+      "metadata": {
+        "section_path": "Mi osz Kadzi \u0142 \u0144 ski",
+        "page_numbers": [
+          1
+        ]
+      },
+      "source_text": "Decision Analysis",
+      "card": {
+        "due": "2026-05-25T20:37:45.633760+00:00",
+        "stability": 7.066351379597321,
+        "difficulty": 4.9902283692968386,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:23:41.973792+00:00",
+      "last_review": "2026-05-25T20:27:45.633832+00:00"
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c5_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c5_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 5,
+      "type": "flashcard",
+      "prompt": "Decision theory",
+      "answer": "Decision analysis and decision making under uncertainty.",
+      "metadata": {
+        "section_path": "The Role of Preferences in the Contemporary World",
+        "page_numbers": [
+          2
+        ]
+      },
+      "source_text": "- \u00a7 Reasoning with preferences (decision theory, constraint satisfaction, non-monotonic reasoning, \u2026 .)",
+      "card": {
+        "due": "2026-05-25T20:23:48.950583+00:00",
+        "stability": 0.0,
+        "difficulty": 0.0,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:23:48.949443+00:00",
+      "last_review": null
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c8_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c8_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 8,
+      "type": "flashcard",
+      "prompt": "Types of preference scales",
+      "answer": "Binary, ordinal, and numerical scales",
+      "metadata": {
+        "section_path": "The Role of Preferences in the Contemporary World",
+        "page_numbers": [
+          3
+        ]
+      },
+      "source_text": "- \u00a7 Evaluation of services, objects, or products expressed on the binary (e.g., like / dislike), ordinal (e.g., the number of stars from 1 to 5) or numerical (e.g., 0-100; 0-10) scale\n- \u00a7 Free text opinion (sentiment analysis); selection of tags (labels)\n- \u00a7 Preferences can be extracted implicitly from people\u00d5s behavior",
+      "card": {
+        "due": "2026-05-25T20:36:25.504759+00:00",
+        "stability": 152.946038441664,
+        "difficulty": 6.659508505478089,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:23:59.905112+00:00",
+      "last_review": "2026-05-25T20:30:55.504842+00:00"
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c9_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c9_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 9,
+      "type": "flashcard",
+      "prompt": "Artificial Intelligence",
+      "answer": "The ability of computer systems to perform tasks that typically require human intelligence.",
+      "metadata": {
+        "section_path": "The Role of Preferences in the Contemporary World",
+        "page_numbers": [
+          3
+        ]
+      },
+      "source_text": "Artificial Intellience",
+      "card": {
+        "due": "2026-05-25T20:24:03.707107+00:00",
+        "stability": 0.0,
+        "difficulty": 0.0,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:24:03.705996+00:00",
+      "last_review": null
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c11_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c11_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 11,
+      "type": "flashcard",
+      "prompt": "Explain the concept: Main Types of Preferences.",
+      "answer": "- \u00a7 Binary (e.g., good / bad; like / dislike; A: 1, B: 1: C: 0, D: 0) or graded\n- (e.g., numerical (A: 0.9, B: 0.8: C: 0.1, D: 0.3) or ordinal (A: +, B: 0, C: -))\n- \u00a7 Absolute (assessing individual objects) or relative (comparing objects)\n- \u00a7 Relative: complete (A > B > C > D) or partial (A > B > D; A > C > D)\n- \u00a7 Explicit (direct feedback; answer to a question) or implicit (e.g., click-through data)\n- \u00a7 Structured (e.g., ratings on a given scale) or unstructured (e.g., free text)\n- \u00a7 Singleor multi-dimensional (holistic preferences or preferences concerning individual feature)\n- \u00a7 Single user (e.g., document keywords (tags, labels)) or multiple users (e.g., social tagging )\n- \u00a7 Oriented on a single user (e.g., a series of question-answer for a given person) or learning based on other user",
+      "metadata": {
+        "section_path": "Main Types of Preferences",
+        "page_numbers": [
+          4
+        ]
+      },
+      "source_text": "- \u00a7 Binary (e.g., good / bad; like / dislike; A: 1, B: 1: C: 0, D: 0) or graded\n- (e.g., numerical (A: 0.9, B: 0.8: C: 0.1, D: 0.3) or ordinal (A: +, B: 0, C: -))\n- \u00a7 Absolute (assessing individual objects) or relative (comparing objects)\n- \u00a7 Relative: complete (A > B > C > D) or partial (A > B > D; A > C > D)\n- \u00a7 Explicit (direct feedback; answer to a question) or implicit (e.g., click-through data)\n- \u00a7 Structured (e.g., ratings on a given scale) or unstructured (e.g., free text)\n- \u00a7 Singleor multi-dimensional (holistic preferences or preferences concerning individual feature)\n- \u00a7 Single user (e.g., document keywords (tags, labels)) or multiple users (e.g., social tagging )\n- \u00a7 Oriented on a single user (e.g., a series of question-answer for a given person) or learning based on other users\u00d5 preferences (e.g., collaborative filtering)",
+      "card": {
+        "due": "2026-05-25T20:37:26.880700+00:00",
+        "stability": 7.066351379597321,
+        "difficulty": 4.9902283692968386,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:24:16.136697+00:00",
+      "last_review": "2026-05-25T20:27:26.880823+00:00"
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c12_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c12_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 12,
+      "type": "flashcard",
+      "prompt": "Types of preferences",
+      "answer": "Different types of preferences are focused on various use contexts.",
+      "metadata": {
+        "section_path": "Main Types of Preferences",
+        "page_numbers": [
+          4
+        ]
+      },
+      "source_text": "Different types of preferences and their various use contexts lead to a broad spectrum of learning problems!",
+      "card": {
+        "due": "2026-05-25T20:36:26.502848+00:00",
+        "stability": 4.289563719689829,
+        "difficulty": 6.665995369296838,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:24:19.525858+00:00",
+      "last_review": "2026-05-25T20:30:56.502915+00:00"
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c15_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c15_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 15,
+      "type": "flashcard",
+      "prompt": "Explain the concept: Machine Learning in the Context of Prediction Models.",
+      "answer": "- \u00a7 Supervised learning : algorithms discovering dependencies and regularities in a domain of interest, expressed through appropriate models, from specific observations or examples\n- \u00a7 Machine learning aims at generalizing beyond observed data; the models are used to assess new objects / instances that were not available or considered at the learning stage",
+      "metadata": {
+        "section_path": "Machine Learning in the Context of Prediction Models",
+        "page_numbers": [
+          5
+        ]
+      },
+      "source_text": "- \u00a7 Supervised learning : algorithms discovering dependencies and regularities in a domain of interest, expressed through appropriate models, from specific observations or examples\n- \u00a7 Machine learning aims at generalizing beyond observed data; the models are used to assess new objects / instances that were not available or considered at the learning stage",
+      "card": {
+        "due": "2026-05-25T20:31:52.116078+00:00",
+        "stability": 0.09517279993343508,
+        "difficulty": 8.341762369296838,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:24:30.576795+00:00",
+      "last_review": "2026-05-25T20:30:52.116159+00:00"
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c20_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c20_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 20,
+      "type": "flashcard",
+      "prompt": "Definition of a supervised learning problem",
+      "answer": "Predicting a target variable from input features",
+      "metadata": {
+        "section_path": "Specification of a (supervised) learning problem requires answering the following questions",
+        "page_numbers": [
+          5
+        ]
+      },
+      "source_text": "Artificial Intellience",
+      "card": {
+        "due": "2026-05-25T20:24:51.957980+00:00",
+        "stability": 0.0,
+        "difficulty": 0.0,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:24:51.956817+00:00",
+      "last_review": null
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c21_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c21_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 21,
+      "type": "flashcard",
+      "prompt": "Decision analysis in supervised learning",
+      "answer": "Evaluation of model performance and selection of the best model",
+      "metadata": {
+        "section_path": "Specification of a (supervised) learning problem requires answering the following questions",
+        "page_numbers": [
+          5
+        ]
+      },
+      "source_text": "Decision Analysis",
+      "card": {
+        "due": "2026-05-25T20:24:55.737978+00:00",
+        "stability": 0.0,
+        "difficulty": 0.0,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:24:55.736816+00:00",
+      "last_review": null
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c27_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c27_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 27,
+      "type": "flashcard",
+      "prompt": "X1, X2, X3 ratings",
+      "answer": "Number of positive, negative, and neutral ratings.",
+      "metadata": {
+        "section_path": "Input data",
+        "page_numbers": [
+          7
+        ]
+      },
+      "source_text": "0.7, X2 = 1.2. 0.7,  = 16. 0.7, X3  Preference = >. 0.7, X1 = 0.4. 0.7, X2 = 0.3. 0.7, X3 = 15. 0.4, X2 = 1.4. 0.4,  = 18. 0.4, X3  Preference = >. 0.4, X1 = 0.5. 0.4, X2 = 1.6. 0.4, X3 = 17. 0.9, X2 = 0.2. 0.9,  = 19. 0.9, X3  Preference = >. 0.9, X1 = 0.7. 0.9, X2 = 0.4. 0.9, X3 = 48",
+      "card": {
+        "due": "2026-05-25T20:36:24.628293+00:00",
+        "stability": 152.946038441664,
+        "difficulty": 6.659508505478089,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:25:22.749388+00:00",
+      "last_review": "2026-05-25T20:30:54.628388+00:00"
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c30_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c30_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 30,
+      "type": "flashcard",
+      "prompt": "Ranking function for object ranking",
+      "answer": "A function that takes a set of objects as input and returns a permutation of the set.",
+      "metadata": {
+        "section_path": "Object Ranking",
+        "page_numbers": [
+          8
+        ]
+      },
+      "source_text": "- \u00a7 Aim : finding a ranking function  (.) that assumes as input a set of objects f Z and returns a permutation (ranking) of this set\n- \u00a7 Prediction is a ranking of all objects, e.g., x 10 > x  > x  > x  > x  > x  > x  > x  > x  > x 4 7 1 2 8 9 3 5 6\n- \u00a7 An alternative name of the object ranking problem is \u00d3 learning to order things \u00d3\n- \u00a7 The most famous representative is \u00d3 learning to rank \u00d3 \u00d0 ranking of web pages returned by a search engine based on the user\u00d5s clicks\n- \u00a7 The evaluation of a prediction model requires the reference to the ground truth , which \u00d0 even for an object ranking problem \u00d0 can differ depending on the application domain\n- \u00a7 Target ranking of all objects: x  > x  > x  > x 7 4 2 10 > x  > x  > x  > x  > x  > x 1 8 9 3 5 6 (rarely, due to the typically large sizes of sets of objects)\n- \u00a7 Ranking of top objects x  > x  > x  (in the context of search engines, 7 4 2 the users focus, e.g., on top 10 pages, while ignoring the rest)\n- \u00a7 A set of relevant objects (possibly even a single, most relevant one): relevant = {x , x , x , x 7 4 2 10 }; non-relevant = {x , x , x , x , x , x } 1 8 9 3 5 6",
+      "card": {
+        "due": "2026-05-25T20:37:44.472930+00:00",
+        "stability": 7.066351379597321,
+        "difficulty": 4.9902283692968386,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:25:33.627178+00:00",
+      "last_review": "2026-05-25T20:27:44.472998+00:00"
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c33_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c33_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 33,
+      "type": "flashcard",
+      "prompt": "Explain the concept: Performance Measures for Object Ranking.",
+      "answer": "- \u00a7 Ranking errors (based on rank correlation measures) comparing the target ranking R t and the predicted ranking R p\n- \u00a7 Consider: Z = {A, B, C, D, E}; R t : E > B > C > A > D; R p : A > B > E > C > D\n- \u00a7 Denote by r (x) the position in y i R y attained by object x ; e.g., r (A) = 4, r (A) = 1 i t p\n- \u00a7 Spearman\u00d5s Footrule : a sum of absolute differences between positions attained in the compared rankings\n- \u00a7 DSF ( Rt ,R p ) = \u03a3 i =1, \u2026 , n |r (x ) - r t i p (x )| = i \u03a3 i =1, \u2026 , n d (r ,r x i t p )\n- \u00a7 Example: D SF ( Rt ,R p ) = 3 (A) + 0 (B) + 1 (C) + 0 (D) + 2 (E) = 6\n- \u00a7 Spearman Distance : a sum of square differences between positions\n- \u00a7 DS ( Rt ,R p ) = \u03a3 i =1, \u2026 , n (r (x ) - r t i p (x )) i 2 = \u03a3 i =1, \u2026 , n d (r ,r x i t p ) 2\n- \u00a7 Example: D S ( Rt ,R p ) = 3  (A) + 0  (B) + 1",
+      "metadata": {
+        "section_path": "Performance Measures for Object Ranking",
+        "page_numbers": [
+          9
+        ]
+      },
+      "source_text": "- \u00a7 Ranking errors (based on rank correlation measures) comparing the target ranking R t and the predicted ranking R p\n- \u00a7 Consider: Z = {A, B, C, D, E}; R t : E > B > C > A > D; R p : A > B > E > C > D\n- \u00a7 Denote by r (x) the position in y i R y attained by object x ; e.g., r (A) = 4, r (A) = 1 i t p\n- \u00a7 Spearman\u00d5s Footrule : a sum of absolute differences between positions attained in the compared rankings\n- \u00a7 DSF ( Rt ,R p ) = \u03a3 i =1, \u2026 , n |r (x ) - r t i p (x )| = i \u03a3 i =1, \u2026 , n d (r ,r x i t p )\n- \u00a7 Example: D SF ( Rt ,R p ) = 3 (A) + 0 (B) + 1 (C) + 0 (D) + 2 (E) = 6\n- \u00a7 Spearman Distance : a sum of square differences between positions\n- \u00a7 DS ( Rt ,R p ) = \u03a3 i =1, \u2026 , n (r (x ) - r t i p (x )) i 2 = \u03a3 i =1, \u2026 , n d (r ,r x i t p ) 2\n- \u00a7 Example: D S ( Rt ,R p ) = 3  (A) + 0  (B) + 1  (C) + 0  (D) + 2  (E) = 14 2 2 2 2 2\n- \u00a7 Value range: min DS ( Rt ,R p ) = 0; max DS ( Rt ,R p ) = \u03a3 i =1, \u2026 , n ((n-i) - i) 2 = n (n 2 \u00b7 -1)/3\n- \u00a7 Spearman Rank Correlation Coefficient :\n- \u00a7 Normalized Spearman Distance to the [-1, 1] range\n- \u00a7 DSR ( Rt ,R p ) = 1 - 6 D \u00b7 S (R ,R )/[n (n -1)] t p \u00b7 2 \u2208 [-1, 1]\n- \u00a7 Example: D SR ( Rt ,R p ) = 1 - 6 14/[5 (5 -1)] = 1 \u00d0 84/120 = 1 \u00d0 0.3 = 0.7 \u00b7 \u00b7 2",
+      "card": {
+        "due": "2026-05-25T20:36:27.999157+00:00",
+        "stability": 152.946038441664,
+        "difficulty": 6.659508505478089,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:25:47.738453+00:00",
+      "last_review": "2026-05-25T20:30:57.999238+00:00"
+    },
+    "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c44_f": {
+      "id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d_c44_f",
+      "doc_id": "657120dc-2e08-4eac-b1b1-cb5b33563e0d",
+      "chunk_index": 44,
+      "type": "flashcard",
+      "prompt": "Explain the concept: Label Ranking.",
+      "answer": "- \u00a7 Input data\n- \u00a7 A set of instances (objects) X and a set of training instances D = { x l : l = 1, 2, \u2026 , n } = = a subset of X\n- \u00a7 A set of labels Y = {y , y , 1 2 \u2026 , y } k\n- \u00a7 For each training instance x l : a set of pairwise comparisons of labels in the form: y  > i xl y j (label y  is more preferred for object i x l than label y } j\n- \u00a7 Learning examples : instances associated with pairwise comparisons of labels\n- \u00a7 Example : a set of instances X = {x , x , x , x 1 2 3 4 , x 5 , x 6 , x 7 , x 8 , x 9 , x 10 } pairwise comparisons of labels (A, B, C, D) for instances described in terms of features X1, X2, X3, X4",
+      "metadata": {
+        "section_path": "Label Ranking",
+        "page_numbers": [
+          12
+        ]
+      },
+      "source_text": "- \u00a7 Input data\n- \u00a7 A set of instances (objects) X and a set of training instances D = { x l : l = 1, 2, \u2026 , n } = = a subset of X\n- \u00a7 A set of labels Y = {y , y , 1 2 \u2026 , y } k\n- \u00a7 For each training instance x l : a set of pairwise comparisons of labels in the form: y  > i xl y j (label y  is more preferred for object i x l than label y } j\n- \u00a7 Learning examples : instances associated with pairwise comparisons of labels\n- \u00a7 Example : a set of instances X = {x , x , x , x 1 2 3 4 , x 5 , x 6 , x 7 , x 8 , x 9 , x 10 } pairwise comparisons of labels (A, B, C, D) for instances described in terms of features X1, X2, X3, X4",
+      "card": {
+        "due": "2026-05-25T20:37:31.693834+00:00",
+        "stability": 7.066351379597321,
+        "difficulty": 4.9902283692968386,
+        "elapsed_days": 0,
+        "scheduled_days": 0,
+        "reps": 0,
+        "lapses": 0,
+        "state": "Learning"
+      },
+      "created_at": "2026-05-25T20:26:32.130457+00:00",
+      "last_review": "2026-05-25T20:27:31.693943+00:00"
+    }
+  }
+}
