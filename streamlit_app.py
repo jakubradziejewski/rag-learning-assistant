@@ -12,6 +12,7 @@ from backend.core.srs.json_store import load_state, save_state, upsert_items
 API_BASE_URL = os.getenv("API_BASE_URL", "http://backend:8000")
 
 DATA_PATH = Path("data/srs_state.json")
+UPLOAD_DIR = Path("uploads")
 
 
 st.set_page_config(page_title="RAG Learning Assistant", layout="wide")
@@ -37,7 +38,32 @@ upload_tab, session_tab, ask_tab = st.tabs(["Upload", "Daily session", "Ask"])
 with upload_tab:
     st.subheader("Upload PDF")
     uploaded_file = st.file_uploader("Choose a PDF", type=["pdf"])
-    max_chunks = st.number_input("Max chunks to generate study items", min_value=1, value=10, step=1)
+    max_chunks = st.number_input(
+        "Max chunks per PDF for study items",
+        min_value=1,
+        value=20,
+        step=1,
+        help=(
+            "Limits how many parsed chunks are returned for study item generation. "
+            "Lower values create fewer items and speed up generation. "
+            "All chunks are still embedded and stored for search."
+        ),
+    )
+
+    if st.button("Reset stored items"):
+        try:
+            if DATA_PATH.exists():
+                DATA_PATH.unlink()
+            if UPLOAD_DIR.exists():
+                for path in UPLOAD_DIR.glob("*"):
+                    if path.is_file():
+                        path.unlink()
+            st.session_state.queue_ids = []
+            st.session_state.queue_index = 0
+            st.session_state.show_answer = False
+            st.success("Stored items and uploads cleared.")
+        except OSError as exc:
+            st.error(f"Reset failed: {exc}")
 
     if uploaded_file and st.button("Process PDF"):
         params = {"include_chunks": "true", "max_chunks": str(int(max_chunks))}
@@ -119,7 +145,7 @@ with session_tab:
                 if st.session_state.show_answer:
                     st.markdown(f"**Answer:** {current_item['answer']}")
 
-                rating = st.slider("Your rating (0-5)", min_value=0, max_value=5, value=3)
+                rating = st.slider("Your rating (1-5)", min_value=1, max_value=5, value=3)
 
                 if st.button("Submit rating"):
                     print(f"Submitting rating {rating} for item {current_id}")

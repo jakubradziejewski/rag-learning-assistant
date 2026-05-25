@@ -60,7 +60,15 @@ def generate_study_items(
                     "You generate study materials. "
                     "Return JSON only, no markdown. "
                     "Keys: question, answer, flashcard_front, flashcard_back, key_points. "
-                    "Keep answers short and factual."
+                    "Write self-contained questions and answers grounded only in the provided chunk. "
+                    "Do not use outside knowledge or introduce unrelated topics. "
+                    "Make flashcard_front specific and unambiguous (include scope or qualifiers from the chunk). "
+                    "Ensure flashcard_back includes 2-3 concrete details or terms found in the chunk. "
+                    "Do not reference the source text or lecture context with pronouns or deictic phrases "
+                    "(no 'she', 'he', 'they', 'this', 'that', 'the slide', 'the lecture', 'the example'). "
+                    "Avoid subjective or opinion questions. "
+                    "Make questions specific (definition, mechanism, comparison, or consequence). "
+                    "Answers can be 2-4 sentences when needed, but remain factual."
                 ),
             },
             {
@@ -82,10 +90,11 @@ def generate_study_items(
     try:
         return json.loads(content)
     except json.JSONDecodeError:
+        fallback_topic = section_path.strip() or "the topic in this section"
         return {
-            "question": "What is the main idea of this chunk?",
-            "answer": chunk_text[:400],
-            "flashcard_front": "Summarize the key concept.",
-            "flashcard_back": chunk_text[:400],
+            "question": f"Explain the concept: {fallback_topic}.",
+            "answer": chunk_text[:800],
+            "flashcard_front": f"Explain the concept: {fallback_topic}.",
+            "flashcard_back": chunk_text[:800],
             "key_points": [],
         }
