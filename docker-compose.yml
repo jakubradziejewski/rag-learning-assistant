@@ -5,8 +5,6 @@ services:
       network: host
     network_mode: host
     container_name: rag_backend
-    ports:
-      - "8000:8000"
     volumes:
       - .:/app
     environment:

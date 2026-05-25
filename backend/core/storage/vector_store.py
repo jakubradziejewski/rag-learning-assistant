@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 def get_client() -> chromadb.HttpClient:
     return chromadb.HttpClient(
-        host="chromadb",
-        port=8000,
+        host="localhost", #this is as localhost because we have networkmode
+        port=8001,
         settings=Settings(anonymized_telemetry=False),
     )
 

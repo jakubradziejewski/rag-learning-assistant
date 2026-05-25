@@ -4,11 +4,6 @@ from openai import OpenAI
 
 import platform
 
-if platform.system() == "Windows":
-    print("running on Windows")
-elif platform.system() == "Linux":
-    print("running on Linux")
-
 if platform.system() == "Linux":
     base_url = "http://172.17.0.1:12434"
 else:

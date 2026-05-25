@@ -41,7 +41,6 @@ async def upload_pdf(file: UploadFile = File(...)):
 
     embeddings = [embed_text(chunk["text"]) for chunk in chunks]
     logger.info("Embeddings finished: doc_id=%s chunks=%s", doc_id, len(embeddings))
-
     logger.info("Storing chunks: doc_id=%s", doc_id)
     stored = store_chunks(doc_id, chunks, embeddings)
     logger.info("Upload complete: doc_id=%s stored_chunks=%s", doc_id, stored)
