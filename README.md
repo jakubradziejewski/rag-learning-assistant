@@ -36,6 +36,7 @@ pip install uv
 ```
 
 **Pull models (once)**
+Important: for pulling models do not use eduroam, as it seems to be blocking cloudfare. 
 ```bash
 docker model pull ai/mxbai-embed-large
 docker model pull ai/llama3.2
