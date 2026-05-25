@@ -1,13 +1,16 @@
+import logging
+
 import chromadb
 from chromadb.config import Settings
 
 COLLECTION_NAME = "documents"
+logger = logging.getLogger(__name__)
 
 
 def get_client() -> chromadb.HttpClient:
     return chromadb.HttpClient(
-        host="chromadb",
-        port=8000,
+        host="localhost", #this is as localhost because we have networkmode
+        port=8001,
         settings=Settings(anonymized_telemetry=False),
     )
 
@@ -20,6 +23,7 @@ def get_collection(client: chromadb.HttpClient):
 
 
 def store_chunks(doc_id: str, chunks: list[dict], embeddings: list[list[float]]) -> int:
+    logger.info("Opening vector store client: doc_id=%s chunks=%s", doc_id, len(chunks))
     client = get_client()
     collection = get_collection(client)
 
@@ -45,10 +49,13 @@ def store_chunks(doc_id: str, chunks: list[dict], embeddings: list[list[float]])
         metadatas=metadatas,
     )
 
+    logger.info("Chunks stored: doc_id=%s stored=%s", doc_id, len(ids))
+
     return len(ids)
 
 
 def search(query_embedding: list[float], n_results: int = 5) -> list[dict]:
+    logger.info("Searching vector store: n_results=%s", n_results)
     client = get_client()
     collection = get_collection(client)
 
@@ -65,5 +72,7 @@ def search(query_embedding: list[float], n_results: int = 5) -> list[dict]:
         results["distances"][0],
     ):
         output.append({"text": text, "metadata": meta, "distance": dist})
+
+    logger.info("Vector search finished: results=%s", len(output))
 
     return output
