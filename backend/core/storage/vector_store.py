@@ -1,5 +1,5 @@
+import os
 import logging
-
 import chromadb
 from chromadb.config import Settings
 
@@ -8,9 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 def get_client() -> chromadb.HttpClient:
+    host = os.getenv("CHROMADB_HOST", "chromadb")
+    port = int(os.getenv("CHROMADB_PORT", "8000"))
     return chromadb.HttpClient(
-        host="localhost", #this is as localhost because we have networkmode
-        port=8001,
+        host=host,
+        port=port,
         settings=Settings(anonymized_telemetry=False),
     )
 

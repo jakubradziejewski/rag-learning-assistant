@@ -19,7 +19,11 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 
 @router.post("/upload")
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_pdf(
+    file: UploadFile = File(...),
+    include_chunks: bool = False,
+    max_chunks: int | None = None,
+):
     logger.info("Upload request received: filename=%s", file.filename)
 
     if not file.filename.lower().endswith(".pdf"):
@@ -45,11 +49,18 @@ async def upload_pdf(file: UploadFile = File(...)):
     stored = store_chunks(doc_id, chunks, embeddings)
     logger.info("Upload complete: doc_id=%s stored_chunks=%s", doc_id, stored)
 
-    return {
+    response = {
         "doc_id": doc_id,
         "filename": file.filename,
         "chunks_stored": stored,
     }
+
+    if include_chunks:
+        limited = chunks if max_chunks is None else chunks[: max_chunks]
+        response["chunks"] = limited
+        response["chunks_returned"] = len(limited)
+
+    return response
 
 
 class QueryRequest(BaseModel):
