@@ -1,14 +1,17 @@
 import os
+import logging
+import platform
 
 from openai import OpenAI
 
-DMR_BASE_URL = os.getenv(
-    "DMR_BASE_URL",
-    "http://model-runner.docker.internal:12434/engines/llama.cpp/v1",
-)
+
+if platform.system() == "Linux":
+    base_url = "http://172.17.0.1:12434"
+else:
+    base_url = "http://model-runner.docker.internal:12434"
 
 client = OpenAI(
-    base_url=DMR_BASE_URL,
+    base_url=base_url + "/engines/llama.cpp/v1",
     api_key="ignored",
 )
 
@@ -82,7 +85,9 @@ def _embed_chunk(text: str, depth: int = 0) -> list[float]:
         return _average_embeddings([left_emb, right_emb])
 
 
+logger = logging.getLogger(__name__)
 def embed_text(text: str) -> list[float]:
+    logger.info("Generating embedding: chars=%s", len(text))
     trimmed = text.strip()
     if not trimmed:
         trimmed = " "
@@ -96,4 +101,5 @@ def embed_text(text: str) -> list[float]:
         return embeddings[0]
 
     # Average chunk embeddings into a single vector for storage/search.
+    logger.info("Embedding generated")
     return _average_embeddings(embeddings)
