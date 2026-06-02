@@ -25,7 +25,12 @@ Docker Model Runner (host, not container)
 
 **Docker Desktop 4.42+** — [docker.com/products/docker-desktop](https://docker.com/products/docker-desktop)
 
-After installing, run:
+**For ubuntu, run**
+```bash
+sudo apt-get install docker-model-plugin
+```
+
+After installing, run (no need for ubuntu at least):
 ```bash
 docker desktop enable model-runner --tcp 12434
 ```
@@ -36,6 +41,7 @@ pip install uv
 ```
 
 **Pull models (once)**
+Important: for pulling models do not use eduroam, as it seems to be blocking cloudfare. 
 ```bash
 docker model pull ai/mxbai-embed-large
 docker model pull ai/llama3.2

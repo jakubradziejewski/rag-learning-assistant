@@ -15,10 +15,18 @@ client = OpenAI(
 )
 
 LLM_MODEL = "ai/llama3.2"
+logger = logging.getLogger(__name__)
 
 
 def ask(question: str, context_chunks: list[str], temperature: float = 0.0) -> str:
     context = "\n\n".join(context_chunks)
+
+    logger.info(
+        "Generating answer: question_chars=%s context_chunks=%s temperature=%s",
+        len(question),
+        len(context_chunks),
+        temperature,
+    )
 
     response = client.chat.completions.create(
         model=LLM_MODEL,
