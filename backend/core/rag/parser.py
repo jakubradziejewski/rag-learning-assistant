@@ -67,8 +67,8 @@ def parse_pdf(pdf_path: Path) -> list[dict]:
     logger.info("Parsing PDF started: path=%s", pdf_path)
 
     pipeline_options = PdfPipelineOptions(
-        do_ocr=True,
-        do_table_structure=True,
+        do_ocr=False,
+        do_table_structure=False,
     )
 
     logger.info("Creating document converter")

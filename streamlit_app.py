@@ -8,7 +8,7 @@ from pathlib import Path
 import httpx
 import streamlit as st
 from backend.core.srs.fsrs_scheduler import due_date, is_due, review_card
-from backend.core.srs.generator import generate_items_for_chunks
+from backend.core.srs.generator import generate_items_for_chunk
 from backend.core.srs.json_store import load_state, save_state, upsert_items
 API_BASE_URL = os.getenv("API_BASE_URL", "http://backend:8000")
 
@@ -33,23 +33,14 @@ available_minutes = st.sidebar.number_input("Minutes available today", min_value
 minutes_per_item = st.sidebar.number_input("Minutes per item", min_value=1, value=2, step=1)
 
 
-upload_tab, session_tab, ask_tab = st.tabs(["Upload", "Daily session", "Ask"])
+upload_tab, flashcards_tab, session_tab, ask_tab = st.tabs(
+    ["Upload", "Flashcards", "Daily session", "Ask"]
+)
 
 
 with upload_tab:
     st.subheader("Upload PDF")
     uploaded_file = st.file_uploader("Choose a PDF", type=["pdf"])
-    max_chunks = st.number_input(
-        "Max chunks per PDF for study items",
-        min_value=1,
-        value=50,
-        step=1,
-        help=(
-            "Limits how many parsed chunks are returned for study item generation. "
-            "Lower values create fewer items and speed up generation. "
-            "All chunks are still embedded and stored for search."
-        ),
-    )
 
     if st.button("Reset stored items"):
         try:
@@ -67,7 +58,7 @@ with upload_tab:
             st.error(f"Reset failed: {exc}")
 
     if uploaded_file and st.button("Process PDF"):
-        params = {"include_chunks": "true", "max_chunks": str(int(max_chunks))}
+        params = {}
         files = {"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")}
 
         with st.spinner("Uploading and processing PDF..."):
@@ -84,24 +75,77 @@ with upload_tab:
                 st.stop()
 
         payload = response.json()
+        st.success(
+            "Stored {stored} chunks for {filename}.".format(
+                stored=payload.get("chunks_stored", 0),
+                filename=payload.get("filename", "the upload"),
+            )
+        )
+
+
+with flashcards_tab:
+    st.subheader("Flashcards")
+    st.write("Generate flashcards from all stored embeddings.")
+
+    if st.button("Generate"):
+        with st.spinner("Loading stored chunks..."):
+            try:
+                response = httpx.get(
+                    f"{API_BASE_URL}/documents/chunks",
+                    timeout=300.0,
+                )
+                response.raise_for_status()
+            except httpx.HTTPError as exc:
+                st.error(f"Loading chunks failed: {exc}")
+                st.stop()
+
+        payload = response.json()
         chunks = payload.get("chunks", [])
         if not chunks:
-            st.error("No chunks returned from the backend.")
+            st.warning("No stored chunks found. Upload PDFs first.")
         else:
-            doc_id = payload["doc_id"]
-            items = generate_items_for_chunks(doc_id, chunks)
-
             state = load_state(DATA_PATH)
+            state["items"] = {}
+            save_state(DATA_PATH, state)
+            st.session_state.queue_ids = []
+            st.session_state.queue_index = 0
+            st.session_state.show_answer = False
+
+            progress = st.progress(0)
+            status = st.empty()
+
+            items: list[dict] = []
+            seen_prompts: set[str] = set()
+            total = len(chunks)
+            skipped = 0
+
+            for index, chunk in enumerate(chunks, start=1):
+                status.write(f"Generating flashcards {index}/{total}")
+                progress.progress(index / total)
+
+                if chunk.get("chunk_index") is None:
+                    skipped += 1
+                    continue
+
+                for item in generate_items_for_chunk(chunk["doc_id"], chunk):
+                    prompt = " ".join(str(item.get("prompt", "")).lower().split())
+                    if not prompt or prompt in seen_prompts:
+                        continue
+                    seen_prompts.add(prompt)
+                    items.append(item)
+
             upsert_items(state, items)
             save_state(DATA_PATH, state)
+            status.empty()
 
             st.success(
-                "Stored {stored} chunks. Generated {items} study items from {chunks} chunks.".format(
-                    stored=payload.get("chunks_stored", 0),
+                "Generated {items} flashcards from {chunks} chunks.".format(
                     items=len(items),
-                    chunks=len(chunks),
+                    chunks=total,
                 )
             )
+            if skipped:
+                st.warning(f"Skipped {skipped} chunks without a chunk index.")
 
 
 with session_tab:

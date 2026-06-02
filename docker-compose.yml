@@ -1,14 +1,14 @@
 services:
   backend:
-    build:
-      context: .
-      network: host
-    network_mode: host
+    build: .
     container_name: rag_backend
+    ports:
+      - "8000:8000"
     volumes:
       - .:/app
     environment:
       - UV_LINK_MODE=copy
+      - DMR_BASE_URL=http://model-runner.docker.internal:12434/engines/llama.cpp/v1
     extra_hosts:
       - "model-runner.docker.internal:host-gateway"
     depends_on:

@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from backend.core.rag.parser import parse_pdf
 from backend.core.rag.embedder import embed_text
 from backend.core.rag.llm import ask
-from backend.core.storage.vector_store import store_chunks, search
+from backend.core.storage.vector_store import list_chunks, search, store_chunks
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 logger = logging.getLogger(__name__)
@@ -95,4 +95,14 @@ def query(req: QueryRequest):
             }
             for r in results
         ],
+    }
+
+
+@router.get("/chunks")
+def list_all_chunks():
+    logger.info("List chunks request received")
+    chunks = list_chunks()
+    return {
+        "count": len(chunks),
+        "chunks": chunks,
     }

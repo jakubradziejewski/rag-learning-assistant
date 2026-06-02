@@ -1,5 +1,7 @@
-import os
+import ast
 import logging
+import os
+
 import chromadb
 from chromadb.config import Settings
 
@@ -77,4 +79,61 @@ def search(query_embedding: list[float], n_results: int = 5) -> list[dict]:
 
     logger.info("Vector search finished: results=%s", len(output))
 
+    return output
+
+
+def _parse_page_numbers(value) -> list[int]:
+    if isinstance(value, list):
+        return [int(item) for item in value if str(item).isdigit()]
+    if isinstance(value, str):
+        try:
+            parsed = ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            return []
+        if isinstance(parsed, list):
+            return [int(item) for item in parsed if str(item).isdigit()]
+    return []
+
+
+def list_chunks() -> list[dict]:
+    logger.info("Listing all chunks from vector store")
+    client = get_client()
+    collection = get_collection(client)
+
+    results = collection.get(include=["documents", "metadatas"])
+
+    ids = results.get("ids", [])
+    documents = results.get("documents", [])
+    metadatas = results.get("metadatas", [])
+
+    output = []
+    for chunk_id, text, meta in zip(ids, documents, metadatas):
+        meta = meta or {}
+        chunk_index = meta.get("chunk_index")
+        doc_id = meta.get("doc_id", "")
+        try:
+            chunk_index = int(chunk_index) if chunk_index is not None else None
+        except (TypeError, ValueError):
+            chunk_index = None
+
+        if not doc_id and isinstance(chunk_id, str) and "_chunk_" in chunk_id:
+            doc_id = chunk_id.split("_chunk_", 1)[0]
+
+        if chunk_index is None and isinstance(chunk_id, str) and "_chunk_" in chunk_id:
+            chunk_suffix = chunk_id.rsplit("_chunk_", 1)[-1]
+            if chunk_suffix.isdigit():
+                chunk_index = int(chunk_suffix)
+
+        output.append(
+            {
+                "id": chunk_id,
+                "doc_id": doc_id,
+                "chunk_index": chunk_index,
+                "text": text,
+                "section_path": meta.get("section_path", ""),
+                "page_numbers": _parse_page_numbers(meta.get("page_numbers")),
+            }
+        )
+
+    logger.info("Chunk listing complete: chunks=%s", len(output))
     return output

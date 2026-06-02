@@ -1,17 +1,25 @@
-import os
 import logging
+import os
 import platform
 
 from openai import OpenAI
 
 
-if platform.system() == "Linux":
-    base_url = "http://172.17.0.1:12434"
-else:
-    base_url = "http://model-runner.docker.internal:12434"
+def _resolve_base_url() -> str:
+    configured = os.getenv("DMR_BASE_URL")
+    if configured:
+        configured = configured.rstrip("/")
+        if "/engines/llama.cpp/v1" in configured:
+            return configured
+        return f"{configured}/engines/llama.cpp/v1"
+
+    if platform.system() == "Linux":
+        return "http://172.17.0.1:12434/engines/llama.cpp/v1"
+    return "http://model-runner.docker.internal:12434/engines/llama.cpp/v1"
+
 
 client = OpenAI(
-    base_url=base_url + "/engines/llama.cpp/v1",
+    base_url=_resolve_base_url(),
     api_key="ignored",
 )
 
