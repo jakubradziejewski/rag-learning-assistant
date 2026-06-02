@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from backend.core.rag.parser import parse_pdf
 from backend.core.rag.embedder import embed_text
 from backend.core.rag.llm import ask
-from backend.core.storage.vector_store import store_chunks, search
+from backend.core.storage.vector_store import list_chunks, search, store_chunks
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 logger = logging.getLogger(__name__)
@@ -19,7 +19,11 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 
 
 @router.post("/upload")
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_pdf(
+    file: UploadFile = File(...),
+    include_chunks: bool = False,
+    max_chunks: int | None = None,
+):
     logger.info("Upload request received: filename=%s", file.filename)
 
     if not file.filename.lower().endswith(".pdf"):
@@ -45,11 +49,18 @@ async def upload_pdf(file: UploadFile = File(...)):
     stored = store_chunks(doc_id, chunks, embeddings)
     logger.info("Upload complete: doc_id=%s stored_chunks=%s", doc_id, stored)
 
-    return {
+    response = {
         "doc_id": doc_id,
         "filename": file.filename,
         "chunks_stored": stored,
     }
+
+    if include_chunks:
+        limited = chunks if max_chunks is None else chunks[: max_chunks]
+        response["chunks"] = limited
+        response["chunks_returned"] = len(limited)
+
+    return response
 
 
 class QueryRequest(BaseModel):
@@ -84,4 +95,14 @@ def query(req: QueryRequest):
             }
             for r in results
         ],
+    }
+
+
+@router.get("/chunks")
+def list_all_chunks():
+    logger.info("List chunks request received")
+    chunks = list_chunks()
+    return {
+        "count": len(chunks),
+        "chunks": chunks,
     }
