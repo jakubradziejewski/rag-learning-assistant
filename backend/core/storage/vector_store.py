@@ -1,3 +1,4 @@
+import json
 import os
 
 import chromadb
@@ -71,3 +72,50 @@ def search(query_embedding: list[float], n_results: int = 5) -> list[dict]:
         output.append({"text": text, "metadata": meta, "distance": dist})
 
     return output
+
+
+def _parse_page_numbers(value: object) -> list[int]:
+    if isinstance(value, list):
+        return [int(v) for v in value if isinstance(v, (int, float, str))]
+    if value is None:
+        return []
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError:
+            return []
+        if isinstance(parsed, list):
+            return [int(v) for v in parsed if isinstance(v, (int, float, str))]
+    return []
+
+
+def get_all_chunks() -> list[dict]:
+    client = get_client()
+    collection = get_collection(client)
+
+    results = collection.get(include=["documents", "metadatas"])
+    documents = results.get("documents", [])
+    metadatas = results.get("metadatas", [])
+    ids = results.get("ids", [])
+
+    chunks: list[dict] = []
+    for text, meta, chunk_id in zip(documents, metadatas, ids):
+        meta = meta or {}
+        chunk_index = meta.get("chunk_index", 0)
+        try:
+            chunk_index = int(chunk_index)
+        except (TypeError, ValueError):
+            chunk_index = 0
+
+        chunks.append(
+            {
+                "id": chunk_id,
+                "doc_id": meta.get("doc_id", ""),
+                "text": text or "",
+                "page_numbers": _parse_page_numbers(meta.get("page_numbers")),
+                "section_path": meta.get("section_path", ""),
+                "chunk_index": chunk_index,
+            }
+        )
+
+    return chunks

@@ -7,8 +7,8 @@ from docling.chunking import HierarchicalChunker
 
 def parse_pdf(pdf_path: Path) -> list[dict]:
     pipeline_options = PdfPipelineOptions(
-        do_ocr=True,
-        do_table_structure=True,
+        do_ocr=False,
+        do_table_structure=False,
     )
 
     converter = DocumentConverter(
