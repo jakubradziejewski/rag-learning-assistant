@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from backend.core.rag.parser import parse_pdf
 from backend.core.rag.embedder import embed_text
 from backend.core.rag.llm import ask
-from backend.core.storage.vector_store import get_all_chunks, search, store_chunks
+from backend.core.storage.vector_store import get_all_chunks, search, store_chunks, hybrid_search
 
 logger = logging.getLogger(__name__)
 
@@ -59,12 +59,24 @@ class QueryRequest(BaseModel):
     question: str
     n_results: int = 5
     temperature: float = 0.0
+    use_hybrid: bool = True
+    bm25_weight: float = 0.3
 
 
 @router.post("/query")
 def query(req: QueryRequest):
     query_embedding = embed_text(req.question)
-    results = search(query_embedding, n_results=req.n_results)
+    
+    if req.use_hybrid:
+        results = hybrid_search(
+            query_text=req.question,
+            query_embedding=query_embedding,
+            n_results=req.n_results,
+            bm25_weight=req.bm25_weight,
+            vector_weight=1.0 - req.bm25_weight,
+        )
+    else:
+        results = search(query_embedding, n_results=req.n_results)
 
     context_chunks = [r["text"] for r in results]
     answer = ask(req.question, context_chunks, temperature=req.temperature)
@@ -72,12 +84,16 @@ def query(req: QueryRequest):
     return {
         "question": req.question,
         "answer": answer,
+        "search_method": "hybrid" if req.use_hybrid else "vector",
         "sources": [
             {
                 "text": r["text"],
                 "section": r["metadata"].get("section_path", ""),
                 "pages": r["metadata"].get("page_numbers", ""),
                 "relevance_score": round(1 - r["distance"], 3),
+                "bm25_score": round(r.get("bm25_score", 0.0), 3) if req.use_hybrid else None,
+                "vector_score": round(r.get("vector_score", 0.0), 3) if req.use_hybrid else None,
+                "hybrid_score": round(r.get("hybrid_score", 0.0), 3) if req.use_hybrid else None,
             }
             for r in results
         ],

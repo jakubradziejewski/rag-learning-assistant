@@ -260,13 +260,25 @@ with session_tab:
 with ask_tab:
     st.subheader("Ask the material")
     question = st.text_input("Question")
-    n_results = st.number_input("Top results", min_value=1, value=5, step=1)
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        n_results = st.number_input("Top results", min_value=1, value=5, step=1)
+    with col2:
+        use_hybrid = st.checkbox("Hybrid search", value=True)
+    with col3:
+        if use_hybrid:
+            bm25_weight = st.slider("BM25 weight", 0.0, 1.0, 0.3, step=0.1)
+        else:
+            bm25_weight = 0.3
 
     if question and st.button("Ask"):
         payload = {
             "question": question,
             "n_results": int(n_results),
             "temperature": 0.0,
+            "use_hybrid": use_hybrid,
+            "bm25_weight": bm25_weight if use_hybrid else 0.3,
         }
 
         with st.spinner("Searching and answering..."):
@@ -284,10 +296,22 @@ with ask_tab:
         data = response.json()
         st.markdown("**Answer**")
         st.write(data.get("answer", ""))
+        
+        search_method = data.get("search_method", "vector")
+        st.caption(f"Search method: {search_method}")
 
         with st.expander("Sources"):
-            for source in data.get("sources", []):
+            for idx, source in enumerate(data.get("sources", []), 1):
                 section = source.get("section", "")
                 pages = source.get("pages", "")
+                
+                # Display scores
+                score_parts = [f"Relevance: {source.get('relevance_score', 0)}"]
+                if source.get("hybrid_score") is not None:
+                    score_parts.append(f"Hybrid: {source.get('hybrid_score', 0)}")
+                    score_parts.append(f"Vector: {source.get('vector_score', 0)}")
+                    score_parts.append(f"BM25: {source.get('bm25_score', 0)}")
+                
+                st.write(f"**Result {idx}** | {' | '.join(score_parts)}")
                 st.write(f"Section: {section} | Pages: {pages}")
                 st.write(source.get("text", ""))
