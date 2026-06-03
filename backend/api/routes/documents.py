@@ -128,8 +128,8 @@ def search_chunks(req: SearchChunksRequest):
     results = search(query_embedding, n_results=req.n_results)
     chunks = [
         {
-            "doc_id": r.get("doc_id", ""),
-            "chunk_index": r.get("chunk_index", 0),
+            "doc_id": r["metadata"].get("doc_id", ""),
+            "chunk_index": r["metadata"].get("chunk_index", 0),
             "text": r["text"],
             "section_path": r["metadata"].get("section_path", ""),
             "page_numbers": r["metadata"].get("page_numbers", []),
