@@ -7,12 +7,13 @@ from pathlib import Path
 
 import httpx
 import streamlit as st
+from backend.core.audio.summary import DETAILS, MODES, summarize, synthesize_speech
 from backend.core.rag.embedder import embed_text
 from backend.core.rag.llm import grade_answer
 from backend.core.srs.fsrs_scheduler import due_date, is_due, review_card
 from backend.core.srs.generator import generate_items_for_chunk
 from backend.core.srs.json_store import load_state, save_state, upsert_items
-from backend.core.storage.vector_store import search
+from backend.core.storage.vector_store import clear_documents, search
 API_BASE_URL = os.getenv("API_BASE_URL", "http://backend:8000")
 
 DATA_PATH = Path("data/srs_state.json")
@@ -41,6 +42,10 @@ if "quiz_question_started_at" not in st.session_state:
     st.session_state.quiz_question_started_at = None
 if "quiz_graded" not in st.session_state:
     st.session_state.quiz_graded = False
+if "listen_text" not in st.session_state:
+    st.session_state.listen_text = ""
+if "listen_audio" not in st.session_state:
+    st.session_state.listen_audio = None
 
 
 st.sidebar.header("Daily Session Settings")
@@ -48,8 +53,8 @@ available_minutes = st.sidebar.number_input("Minutes available today", min_value
 minutes_per_item = st.sidebar.number_input("Minutes per item", min_value=1, value=2, step=1)
 
 
-upload_tab, flashcards_tab, session_tab, quiz_tab, ask_tab = st.tabs(
-    ["Upload", "Flashcards", "Daily session", "Quiz", "Ask"]
+upload_tab, flashcards_tab, session_tab, quiz_tab, listen_tab, ask_tab = st.tabs(
+    ["Upload", "Flashcards", "Daily session", "Quiz", "Listen", "Ask"]
 )
 
 
@@ -59,6 +64,7 @@ with upload_tab:
 
     if st.button("Reset stored items"):
         try:
+            clear_documents()
             if DATA_PATH.exists():
                 DATA_PATH.unlink()
             if UPLOAD_DIR.exists():
@@ -68,6 +74,14 @@ with upload_tab:
             st.session_state.queue_ids = []
             st.session_state.queue_index = 0
             st.session_state.show_answer = False
+            st.session_state.quiz_questions = []
+            st.session_state.quiz_index = 0
+            st.session_state.quiz_results = []
+            st.session_state.quiz_started_at = None
+            st.session_state.quiz_question_started_at = None
+            st.session_state.quiz_graded = False
+            st.session_state.listen_text = ""
+            st.session_state.listen_audio = None
             st.success("Stored items and uploads cleared.")
         except OSError as exc:
             st.error(f"Reset failed: {exc}")
@@ -409,6 +423,76 @@ with quiz_tab:
                     st.session_state.quiz_question_started_at = datetime.now(timezone.utc)
                     st.session_state.quiz_graded = False
                     st.rerun()
+
+
+with listen_tab:
+    st.subheader("Listen")
+
+    try:
+        response = httpx.get(f"{API_BASE_URL}/documents/chunks", timeout=300.0)
+        response.raise_for_status()
+    except httpx.HTTPError as exc:
+        st.error(f"Failed to fetch documents: {exc}")
+        st.stop()
+
+    chunks = response.json().get("chunks", [])
+
+    if not chunks:
+        st.info("No documents yet. Upload a PDF first.")
+    else:
+        documents: dict[str, dict] = {}
+        for chunk in chunks:
+            doc_id = chunk.get("doc_id", "")
+            document = documents.setdefault(
+                doc_id, {"filename": chunk.get("filename", ""), "chunks": []}
+            )
+            document["chunks"].append(chunk)
+
+        labels = {}
+        for doc_id, document in documents.items():
+            label = document["filename"] or f"Document {doc_id[:8]}"
+            labels[label] = doc_id
+
+        selected = st.multiselect("Source documents", list(labels.keys()))
+        detail = st.radio("Detail", list(DETAILS.keys()), index=1, horizontal=True)
+        mode = st.radio("Study mode", list(MODES.keys()))
+        voice = st.selectbox("Voice", ["alloy", "echo", "fable", "nova", "shimmer", "onyx"])
+
+        if st.button("Generate audio"):
+            if not selected:
+                st.warning("Select at least one document.")
+            else:
+                parts = []
+                for label in selected:
+                    doc_chunks = sorted(
+                        documents[labels[label]]["chunks"],
+                        key=lambda chunk: chunk.get("chunk_index", 0),
+                    )
+                    parts.append("\n".join(chunk.get("text", "") for chunk in doc_chunks))
+                material = "\n\n".join(parts)
+
+                try:
+                    with st.spinner("Summarizing..."):
+                        summary = summarize(material, mode, detail)
+                    with st.spinner("Generating audio..."):
+                        audio = synthesize_speech(summary, voice)
+                except Exception as exc:
+                    st.error(f"Generation failed: {exc} (is OPENAI_API_KEY set?)")
+                    st.stop()
+
+                st.session_state.listen_text = summary
+                st.session_state.listen_audio = audio
+
+        if st.session_state.listen_audio:
+            st.audio(st.session_state.listen_audio, format="audio/wav")
+            st.download_button(
+                "Download audio",
+                st.session_state.listen_audio,
+                file_name="summary.wav",
+                mime="audio/wav",
+            )
+            with st.expander("Summary text"):
+                st.write(st.session_state.listen_text)
 
 
 with ask_tab:
