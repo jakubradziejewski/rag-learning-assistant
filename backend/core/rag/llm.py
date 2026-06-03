@@ -44,6 +44,67 @@ def ask(question: str, context_chunks: list[str], temperature: float = 0.0) -> s
     return response.choices[0].message.content
 
 
+def grade_answer(
+    question: str,
+    user_answer: str,
+    reference_answer: str,
+    context_chunks: list[str],
+) -> dict:
+    if not user_answer.strip():
+        return {"score": 0.0, "feedback": "No answer provided."}
+
+    context = "\n\n".join(context_chunks)
+
+    response = client.chat.completions.create(
+        model=LLM_MODEL,
+        temperature=0.0,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You decide how good a student's answer to a study question is. "
+                    "Return JSON only, no markdown. "
+                    "Keys: verdict, feedback. "
+                    "verdict must be one of: CORRECT, PARTIAL, WRONG. "
+                    "CORRECT: the answer is factually right - judged by your own knowledge, the reference answer, or any single context fragment - even if it is much shorter than the reference. Never lower it just because some extra detail is missing. "
+                    "PARTIAL: the main idea is right but there is a real mistake or a key part is missing. "
+                    "WRONG: the answer is irrelevant or contradicts the correct answer. "
+                    "When unsure between CORRECT and PARTIAL, choose CORRECT. "
+                    "Example: question 'What is gradient descent?', answer 'an algorithm that minimizes a loss by following the negative gradient' is CORRECT. "
+                    "Example: question 'What is gradient descent?', answer 'a way to improve a model' is PARTIAL. "
+                    "Example: question 'What is gradient descent?', answer 'a kind of database index' is WRONG. "
+                    "feedback is one or two sentences explaining the verdict."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"Question:\n{question}\n\n"
+                    f"Reference answer:\n{reference_answer}\n\n"
+                    f"Context:\n{context}\n\n"
+                    f"Student answer:\n{user_answer}\n\n"
+                    "Return JSON only."
+                ),
+            },
+        ],
+    )
+
+    content = response.choices[0].message.content.strip()
+
+    try:
+        payload = json.loads(content)
+    except json.JSONDecodeError:
+        return {"score": 0.0, "feedback": "Could not grade this answer automatically."}
+
+    verdict = str(payload.get("verdict", "")).strip().upper()
+    score = {"CORRECT": 1.0, "PARTIAL": 0.5, "WRONG": 0.0}.get(verdict, 0.0)
+
+    return {
+        "score": score,
+        "feedback": str(payload.get("feedback", "")).strip(),
+    }
+
+
 def generate_study_items(
     chunk_text: str,
     section_path: str = "",

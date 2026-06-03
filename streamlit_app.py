@@ -7,9 +7,12 @@ from pathlib import Path
 
 import httpx
 import streamlit as st
+from backend.core.rag.embedder import embed_text
+from backend.core.rag.llm import grade_answer
 from backend.core.srs.fsrs_scheduler import due_date, is_due, review_card
 from backend.core.srs.generator import generate_items_for_chunk
 from backend.core.srs.json_store import load_state, save_state, upsert_items
+from backend.core.storage.vector_store import search
 API_BASE_URL = os.getenv("API_BASE_URL", "http://backend:8000")
 
 DATA_PATH = Path("data/srs_state.json")
@@ -26,6 +29,18 @@ if "queue_index" not in st.session_state:
     st.session_state.queue_index = 0
 if "show_answer" not in st.session_state:
     st.session_state.show_answer = False
+if "quiz_questions" not in st.session_state:
+    st.session_state.quiz_questions = []
+if "quiz_index" not in st.session_state:
+    st.session_state.quiz_index = 0
+if "quiz_results" not in st.session_state:
+    st.session_state.quiz_results = []
+if "quiz_started_at" not in st.session_state:
+    st.session_state.quiz_started_at = None
+if "quiz_question_started_at" not in st.session_state:
+    st.session_state.quiz_question_started_at = None
+if "quiz_graded" not in st.session_state:
+    st.session_state.quiz_graded = False
 
 
 st.sidebar.header("Daily Session Settings")
@@ -33,8 +48,8 @@ available_minutes = st.sidebar.number_input("Minutes available today", min_value
 minutes_per_item = st.sidebar.number_input("Minutes per item", min_value=1, value=2, step=1)
 
 
-upload_tab, flashcards_tab, session_tab, ask_tab = st.tabs(
-    ["Upload", "Flashcards", "Daily session", "Ask"]
+upload_tab, flashcards_tab, session_tab, quiz_tab, ask_tab = st.tabs(
+    ["Upload", "Flashcards", "Daily session", "Quiz", "Ask"]
 )
 
 
@@ -242,6 +257,158 @@ with session_tab:
                     st.rerun()
         else:
             st.info("No items queued. Click 'Start session' to begin.")
+
+
+def _format_seconds(total_seconds: int) -> str:
+    minutes, seconds = divmod(max(0, total_seconds), 60)
+    return f"{minutes}:{seconds:02d}"
+
+
+@st.fragment(run_every=1)
+def _quiz_timer() -> None:
+    started_at = st.session_state.quiz_started_at
+    if started_at is None:
+        return
+
+    now = datetime.now(timezone.utc)
+    st.markdown(f"**Total time:** {_format_seconds(int((now - started_at).total_seconds()))}")
+
+    question_started_at = st.session_state.quiz_question_started_at
+    if question_started_at is not None and not st.session_state.quiz_graded:
+        elapsed = int((now - question_started_at).total_seconds())
+        st.markdown(f"**This question:** {_format_seconds(elapsed)}")
+
+
+with quiz_tab:
+    st.subheader("Quiz")
+
+    if not st.session_state.quiz_questions:
+        num_questions = st.number_input("Number of questions", min_value=1, value=5, step=1)
+
+        if st.button("Start quiz"):
+            with st.spinner("Fetching stored chunks..."):
+                try:
+                    response = httpx.get(
+                        f"{API_BASE_URL}/documents/chunks",
+                        timeout=300.0,
+                    )
+                    response.raise_for_status()
+                except httpx.HTTPError as exc:
+                    st.error(f"Failed to fetch chunks: {exc}")
+                    st.stop()
+
+            chunks = response.json().get("chunks", [])
+
+            if not chunks:
+                st.warning("No chunks found. Upload a PDF first.")
+            else:
+                candidates = [chunk for chunk in chunks if len(chunk.get("text", "").split()) >= 6]
+                random.shuffle(candidates)
+                questions: list[dict] = []
+
+                with st.spinner("Generating questions..."):
+                    for chunk in candidates:
+                        if len(questions) >= num_questions:
+                            break
+                        for item in generate_items_for_chunk(chunk.get("doc_id", ""), chunk):
+                            questions.append(item)
+                            if len(questions) >= num_questions:
+                                break
+
+                if not questions:
+                    st.warning("Could not generate questions from the stored chunks.")
+                else:
+                    now = datetime.now(timezone.utc)
+                    st.session_state.quiz_questions = questions
+                    st.session_state.quiz_index = 0
+                    st.session_state.quiz_results = []
+                    st.session_state.quiz_started_at = now
+                    st.session_state.quiz_question_started_at = now
+                    st.session_state.quiz_graded = False
+                    st.rerun()
+
+    elif st.session_state.quiz_index >= len(st.session_state.quiz_questions):
+        results = st.session_state.quiz_results
+        total_score = sum(result["score"] for result in results)
+        total_possible = len(results)
+        percentage = round(100 * total_score / total_possible) if total_possible else 0
+        total_seconds = sum(result["seconds"] for result in results)
+
+        st.success("Quiz complete.")
+        st.markdown(f"**Score:** {total_score:g} / {total_possible} ({percentage}%)")
+        st.markdown(f"**Total time:** {_format_seconds(total_seconds)}")
+
+        for index, result in enumerate(results, start=1):
+            with st.expander(f"Q{index}: {result['score']:g} | {_format_seconds(result['seconds'])}"):
+                st.markdown(f"**Question:** {result['prompt']}")
+                st.markdown(f"**Your answer:**\n\n{result['user_answer'] or '(empty)'}")
+                st.markdown(f"**Reference:**\n\n{result['reference']}")
+                st.markdown(f"**Feedback:**\n\n{result['feedback']}")
+
+        if st.button("New quiz"):
+            st.session_state.quiz_questions = []
+            st.session_state.quiz_index = 0
+            st.session_state.quiz_results = []
+            st.session_state.quiz_started_at = None
+            st.session_state.quiz_question_started_at = None
+            st.session_state.quiz_graded = False
+            st.rerun()
+
+    else:
+        current_index = st.session_state.quiz_index
+        current = st.session_state.quiz_questions[current_index]
+
+        main_col, side_col = st.columns([3, 1])
+
+        with side_col:
+            _quiz_timer()
+
+        with main_col:
+            st.write(f"Question {current_index + 1} of {len(st.session_state.quiz_questions)}")
+            st.markdown(f"**{current['prompt']}**")
+
+            user_answer = st.text_area("Your answer", key=f"quiz_answer_{current_index}")
+
+            if not st.session_state.quiz_graded:
+                if st.button("Submit answer"):
+                    with st.spinner("Grading..."):
+                        query_embedding = embed_text(current["prompt"])
+                        context_chunks = [
+                            result["text"] for result in search(query_embedding, n_results=3)
+                        ]
+                        grade = grade_answer(
+                            current["prompt"],
+                            user_answer,
+                            current["answer"],
+                            context_chunks,
+                        )
+
+                    elapsed = int(
+                        (datetime.now(timezone.utc) - st.session_state.quiz_question_started_at).total_seconds()
+                    )
+                    st.session_state.quiz_results.append(
+                        {
+                            "prompt": current["prompt"],
+                            "reference": current["answer"],
+                            "user_answer": user_answer,
+                            "score": grade["score"],
+                            "feedback": grade["feedback"],
+                            "seconds": elapsed,
+                        }
+                    )
+                    st.session_state.quiz_graded = True
+                    st.rerun()
+            else:
+                result = st.session_state.quiz_results[-1]
+                st.markdown(f"**Score:** {result['score']:g}")
+                st.markdown(f"**Feedback:**\n\n{result['feedback']}")
+                st.markdown(f"**Reference:**\n\n{result['reference']}")
+
+                if st.button("Next question"):
+                    st.session_state.quiz_index += 1
+                    st.session_state.quiz_question_started_at = datetime.now(timezone.utc)
+                    st.session_state.quiz_graded = False
+                    st.rerun()
 
 
 with ask_tab:

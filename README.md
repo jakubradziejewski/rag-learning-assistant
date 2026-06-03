@@ -30,6 +30,8 @@ After installing, run:
 docker desktop enable model-runner --tcp 12434
 ```
 
+> Can't enable Model Runner (common on **Docker Desktop for Linux**, where the runner won't start)? Use the [Ollama path](#alternative-ollama-instead-of-docker-model-runner) instead.
+
 **uv**
 ```bash
 pip install uv
@@ -52,6 +54,41 @@ docker compose up --build
 
 Open **http://localhost:8000/docs**
 Open **http://localhost:8501** for the Streamlit UI.
+
+## Alternative: Ollama instead of Docker Model Runner
+
+Use this path if Docker Model Runner isn't available — e.g. **Docker Desktop on Linux**, where the DMR runner can't start (`/dev/dri` missing) and the VM has no GPU access. Ollama runs the models **natively on the host**, so it can also drive your NVIDIA GPU directly.
+
+> **Note:** the committed `docker-compose.yml` is already wired for this path — `DMR_BASE_URL` points at `http://host.docker.internal:11434/v1` for both `backend` and `streamlit`. To switch back to Docker Model Runner, set those to `http://model-runner.docker.internal:12434/engines/llama.cpp/v1`.
+
+**1. Install Ollama** and expose it to containers:
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+
+# bind to 0.0.0.0 so containers can reach it via host.docker.internal
+sudo mkdir -p /etc/systemd/system/ollama.service.d
+printf '[Service]\nEnvironment="OLLAMA_HOST=0.0.0.0:11434"\n' | sudo tee /etc/systemd/system/ollama.service.d/override.conf
+sudo systemctl daemon-reload && sudo systemctl restart ollama
+```
+
+**2. Pull the models and alias them** to the `ai/*` names the code expects:
+```bash
+ollama pull llama3.2
+ollama pull mxbai-embed-large
+ollama cp llama3.2 ai/llama3.2
+ollama cp mxbai-embed-large ai/mxbai-embed-large
+```
+
+The `ollama cp` aliases mean **no code changes** — `EMBED_MODEL` / `LLM_MODEL` (the `ai/...` names) resolve straight to Ollama.
+
+**3. Run** as usual:
+```bash
+docker compose up --build
+```
+
+Verify: `curl http://localhost:11434/v1/models` should list `ai/llama3.2` and `ai/mxbai-embed-large`, and `ollama ps` shows them loaded on the GPU.
+
+Binding Ollama to `0.0.0.0` exposes the API on your LAN — fine on a trusted network; revert to `127.0.0.1` if you roam untrusted networks.
 
 ## Streamlit (spaced repetition MVP)
 
