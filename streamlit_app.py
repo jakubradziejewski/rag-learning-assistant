@@ -42,6 +42,14 @@ with upload_tab:
     st.subheader("Upload PDF")
     uploaded_file = st.file_uploader("Choose a PDF", type=["pdf"])
 
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        include_chunks = st.checkbox("Include chunks", value=True)
+    with col2:
+        include_ocr = st.checkbox("Include OCR", value=False)
+    with col3:
+        include_table_structure = st.checkbox("Include table structure", value=False)
+
     if st.button("Reset stored items"):
         try:
             if DATA_PATH.exists():
@@ -64,6 +72,11 @@ with upload_tab:
             try:
                 response = httpx.post(
                     f"{API_BASE_URL}/documents/upload",
+                    params={
+                        "include_chunks": str(include_chunks).lower(),
+                        "include_ocr": str(include_ocr).lower(),
+                        "include_table_structure": str(include_table_structure).lower()
+                    },
                     files=files,
                     timeout=600.0,
                 )
@@ -87,17 +100,73 @@ with flashcards_tab:
     existing_items = len(state.get("items", {}))
     st.write(f"Current flashcards: {existing_items}")
 
+    # Auto-suggest topics via LLM
+    if "suggested_topics" not in st.session_state:
+        st.session_state.suggested_topics = []
+    if "selected_topic" not in st.session_state:
+        st.session_state.selected_topic = ""
+
+    if st.button("✨ Suggest topics from document"):
+        with st.spinner("Analyzing document structure..."):
+            try:
+                r = httpx.get(f"{API_BASE_URL}/documents/chunks", timeout=300.0)
+                r.raise_for_status()
+            except httpx.HTTPError as exc:
+                st.error(f"Failed: {exc}")
+                st.stop()
+
+        all_chunks = r.json().get("chunks", [])
+        # Send only lightweight metadata to LLM, not full texts
+        context = "\n".join(
+            f"- {c.get('section_path', '')} | {c.get('text', '')[:80]}"
+            for c in all_chunks[:60]  # cap at 60 to stay within context
+        )
+
+        try:
+            r2 = httpx.post(
+                f"{API_BASE_URL}/documents/suggest_topics",
+                json={"context": context},
+                timeout=60.0,
+            )
+            r2.raise_for_status()
+            st.session_state.suggested_topics = r2.json().get("topics", [])
+        except httpx.HTTPError as exc:
+            st.error(f"Topic suggestion failed: {exc}")
+
+    if st.session_state.suggested_topics:
+        st.write("**Suggested topics — pick one:**")
+        cols = st.columns(3)
+        for i, topic in enumerate(st.session_state.suggested_topics):
+            if cols[i % 3].button(topic, key=f"topic_{i}"):
+                st.session_state.selected_topic = topic
+
+    topic_query = st.text_input(
+        "Focus topic",
+        value=st.session_state.selected_topic,
+        placeholder="e.g. memory management … or pick above",
+    )
+
+    n_chunks = st.slider("Max chunks to use", min_value=5, max_value=100, value=20)
+
     st.caption(
-        "This will clear existing flashcards and regenerate from all stored embeddings."
+        "With a topic: fetches the most relevant chunks via semantic search. "
+        "Without a topic: uses all stored chunks."
     )
 
     if st.button("Generate"):
-        with st.spinner("Fetching stored chunks..."):
+        with st.spinner("Fetching chunks..."):
             try:
-                response = httpx.get(
-                    f"{API_BASE_URL}/documents/chunks",
-                    timeout=300.0,
-                )
+                if topic_query.strip():
+                    response = httpx.post(
+                        f"{API_BASE_URL}/documents/search",
+                        json={"query": topic_query.strip(), "n_results": n_chunks},
+                        timeout=300.0,
+                    )
+                else:
+                    response = httpx.get(
+                        f"{API_BASE_URL}/documents/chunks",
+                        timeout=300.0,
+                    )
                 response.raise_for_status()
             except httpx.HTTPError as exc:
                 st.error(f"Failed to fetch chunks: {exc}")
@@ -247,13 +316,25 @@ with session_tab:
 with ask_tab:
     st.subheader("Ask the material")
     question = st.text_input("Question")
-    n_results = st.number_input("Top results", min_value=1, value=5, step=1)
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        n_results = st.number_input("Top results", min_value=1, value=5, step=1)
+    with col2:
+        use_hybrid = st.checkbox("Hybrid search", value=True)
+    with col3:
+        if use_hybrid:
+            bm25_weight = st.slider("BM25 weight", 0.0, 1.0, 0.3, step=0.1)
+        else:
+            bm25_weight = 0.3
 
     if question and st.button("Ask"):
         payload = {
             "question": question,
             "n_results": int(n_results),
             "temperature": 0.0,
+            "use_hybrid": use_hybrid,
+            "bm25_weight": bm25_weight if use_hybrid else 0.3,
         }
 
         with st.spinner("Searching and answering..."):
@@ -271,10 +352,22 @@ with ask_tab:
         data = response.json()
         st.markdown("**Answer**")
         st.write(data.get("answer", ""))
+        
+        search_method = data.get("search_method", "vector")
+        st.caption(f"Search method: {search_method}")
 
         with st.expander("Sources"):
-            for source in data.get("sources", []):
+            for idx, source in enumerate(data.get("sources", []), 1):
                 section = source.get("section", "")
                 pages = source.get("pages", "")
+                
+                # Display scores
+                score_parts = [f"Relevance: {source.get('relevance_score', 0)}"]
+                if source.get("hybrid_score") is not None:
+                    score_parts.append(f"Hybrid: {source.get('hybrid_score', 0)}")
+                    score_parts.append(f"Vector: {source.get('vector_score', 0)}")
+                    score_parts.append(f"BM25: {source.get('bm25_score', 0)}")
+                
+                st.write(f"**Result {idx}** | {' | '.join(score_parts)}")
                 st.write(f"Section: {section} | Pages: {pages}")
                 st.write(source.get("text", ""))
