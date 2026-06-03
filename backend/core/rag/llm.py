@@ -189,3 +189,39 @@ def _clean_topic_line(text: str) -> str:
     topic = re.sub(r"^\[\d+\]\s*", "", topic)
     topic = re.sub(r"^\d+[\.)]\s*", "", topic)
     return topic
+
+
+def suggest_topics_from_context(context: str) -> list[str]:
+    response = client.chat.completions.create(
+        model=LLM_MODEL,
+        temperature=0.3,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "You analyze document structure and identify learnable topics. "
+                    "Return JSON only — a single array of 6-9 short topic strings. "
+                    "No markdown, no explanation, no keys. Just the array. "
+                    "Example: [\"TCP handshake\", \"virtual memory paging\", \"process scheduling\"]"
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Below are section headings and chunk previews from a document. "
+                    "Identify the 6-9 most important, distinct, learnable topics a student should study.\n\n"
+                    f"{context}"
+                ),
+            },
+        ],
+    )
+    raw = response.choices[0].message.content.strip()
+    cleaned = re.sub(r"```json|```", "", raw).strip()
+    try:
+        topics = json.loads(cleaned)
+        if isinstance(topics, list):
+            return [str(t) for t in topics[:9]]
+    except json.JSONDecodeError:
+        pass
+    # fallback: extract quoted strings if JSON parse fails
+    return re.findall(r'"([^"]{5,60})"', cleaned)[:9]
