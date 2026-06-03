@@ -39,7 +39,7 @@ async def upload_pdf(
     chunks = parse_pdf(dest, do_ocr=include_ocr, do_table_structure=include_table_structure)
 
     embeddings = [embed_text(chunk["text"]) for chunk in chunks]
-    stored = store_chunks(doc_id, chunks, embeddings)
+    stored = store_chunks(doc_id, chunks, embeddings, filename=file.filename)
 
     response = {
         "doc_id": doc_id,

@@ -1,4 +1,5 @@
 /uploads
  /data
 /_pycache__
-*.pyc   
+*.pyc
+.env   

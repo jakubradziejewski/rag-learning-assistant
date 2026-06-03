@@ -31,7 +31,14 @@ def get_collection(client: chromadb.HttpClient):
     )
 
 
-def store_chunks(doc_id: str, chunks: list[dict], embeddings: list[list[float]]) -> int:
+def clear_documents() -> None:
+    try:
+        get_client().delete_collection(COLLECTION_NAME)
+    except Exception:
+        pass
+
+
+def store_chunks(doc_id: str, chunks: list[dict], embeddings: list[list[float]], filename: str = "") -> int:
     client = get_client()
     collection = get_collection(client)
 
@@ -45,6 +52,7 @@ def store_chunks(doc_id: str, chunks: list[dict], embeddings: list[list[float]])
         documents.append(chunk["text"])
         metadatas.append({
             "doc_id": doc_id,
+            "filename": filename,
             "page_numbers": str(chunk["page_numbers"]),
             "section_path": chunk["section_path"],
             "chunk_index": chunk["chunk_index"],
@@ -264,6 +272,7 @@ def get_all_chunks() -> list[dict]:
             {
                 "id": chunk_id,
                 "doc_id": meta.get("doc_id", ""),
+                "filename": meta.get("filename", ""),
                 "text": text or "",
                 "page_numbers": _parse_page_numbers(meta.get("page_numbers")),
                 "section_path": meta.get("section_path", ""),
