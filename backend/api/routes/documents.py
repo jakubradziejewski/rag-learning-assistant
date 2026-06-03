@@ -107,3 +107,33 @@ def list_chunks():
         "count": len(chunks),
         "chunks": chunks,
     }
+
+class SuggestTopicsRequest(BaseModel):
+    context: str
+
+@router.post("/suggest_topics")
+def suggest_topics(req: SuggestTopicsRequest):
+    from backend.core.rag.llm import suggest_topics_from_context
+    topics = suggest_topics_from_context(req.context)
+    return {"topics": topics}
+
+
+class SearchChunksRequest(BaseModel):
+    query: str
+    n_results: int = 20
+
+@router.post("/search")
+def search_chunks(req: SearchChunksRequest):
+    query_embedding = embed_text(req.query)
+    results = search(query_embedding, n_results=req.n_results)
+    chunks = [
+        {
+            "doc_id": r.get("doc_id", ""),
+            "chunk_index": r.get("chunk_index", 0),
+            "text": r["text"],
+            "section_path": r["metadata"].get("section_path", ""),
+            "page_numbers": r["metadata"].get("page_numbers", []),
+        }
+        for r in results
+    ]
+    return {"chunks": chunks}

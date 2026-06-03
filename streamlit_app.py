@@ -100,17 +100,73 @@ with flashcards_tab:
     existing_items = len(state.get("items", {}))
     st.write(f"Current flashcards: {existing_items}")
 
+    # Auto-suggest topics via LLM
+    if "suggested_topics" not in st.session_state:
+        st.session_state.suggested_topics = []
+    if "selected_topic" not in st.session_state:
+        st.session_state.selected_topic = ""
+
+    if st.button("✨ Suggest topics from document"):
+        with st.spinner("Analyzing document structure..."):
+            try:
+                r = httpx.get(f"{API_BASE_URL}/documents/chunks", timeout=300.0)
+                r.raise_for_status()
+            except httpx.HTTPError as exc:
+                st.error(f"Failed: {exc}")
+                st.stop()
+
+        all_chunks = r.json().get("chunks", [])
+        # Send only lightweight metadata to LLM, not full texts
+        context = "\n".join(
+            f"- {c.get('section_path', '')} | {c.get('text', '')[:80]}"
+            for c in all_chunks[:60]  # cap at 60 to stay within context
+        )
+
+        try:
+            r2 = httpx.post(
+                f"{API_BASE_URL}/documents/suggest_topics",
+                json={"context": context},
+                timeout=60.0,
+            )
+            r2.raise_for_status()
+            st.session_state.suggested_topics = r2.json().get("topics", [])
+        except httpx.HTTPError as exc:
+            st.error(f"Topic suggestion failed: {exc}")
+
+    if st.session_state.suggested_topics:
+        st.write("**Suggested topics — pick one:**")
+        cols = st.columns(3)
+        for i, topic in enumerate(st.session_state.suggested_topics):
+            if cols[i % 3].button(topic, key=f"topic_{i}"):
+                st.session_state.selected_topic = topic
+
+    topic_query = st.text_input(
+        "Focus topic",
+        value=st.session_state.selected_topic,
+        placeholder="e.g. memory management … or pick above",
+    )
+
+    n_chunks = st.slider("Max chunks to use", min_value=5, max_value=100, value=20)
+
     st.caption(
-        "This will clear existing flashcards and regenerate from all stored embeddings."
+        "With a topic: fetches the most relevant chunks via semantic search. "
+        "Without a topic: uses all stored chunks."
     )
 
     if st.button("Generate"):
-        with st.spinner("Fetching stored chunks..."):
+        with st.spinner("Fetching chunks..."):
             try:
-                response = httpx.get(
-                    f"{API_BASE_URL}/documents/chunks",
-                    timeout=300.0,
-                )
+                if topic_query.strip():
+                    response = httpx.post(
+                        f"{API_BASE_URL}/documents/search",
+                        json={"query": topic_query.strip(), "n_results": n_chunks},
+                        timeout=300.0,
+                    )
+                else:
+                    response = httpx.get(
+                        f"{API_BASE_URL}/documents/chunks",
+                        timeout=300.0,
+                    )
                 response.raise_for_status()
             except httpx.HTTPError as exc:
                 st.error(f"Failed to fetch chunks: {exc}")
