@@ -32,10 +32,11 @@ services:
       - DMR_BASE_URL=http://model-runner.docker.internal:12434/engines/llama.cpp/v1
       - CHROMADB_HOST=chromadb
       - CHROMADB_PORT=8000
-      - API_BASE_URL=http://host.docker.internal:8000
+      - API_BASE_URL=http://backend:8000
     extra_hosts:
       - "model-runner.docker.internal:host-gateway"
     depends_on:
+      - backend
       - chromadb
 
   chromadb:

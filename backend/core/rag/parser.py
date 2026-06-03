@@ -5,10 +5,10 @@ from docling.datamodel.base_models import InputFormat
 from docling.chunking import HierarchicalChunker
 
 
-def parse_pdf(pdf_path: Path) -> list[dict]:
+def parse_pdf(pdf_path: Path, do_ocr: bool, do_table_structure: bool = False) -> list[dict]:
     pipeline_options = PdfPipelineOptions(
-        do_ocr=False,
-        do_table_structure=False,
+        do_ocr=do_ocr,
+        do_table_structure=do_table_structure,
     )
 
     converter = DocumentConverter(

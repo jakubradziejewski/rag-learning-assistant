@@ -42,6 +42,14 @@ with upload_tab:
     st.subheader("Upload PDF")
     uploaded_file = st.file_uploader("Choose a PDF", type=["pdf"])
 
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        include_chunks = st.checkbox("Include chunks", value=True)
+    with col2:
+        include_ocr = st.checkbox("Include OCR", value=False)
+    with col3:
+        include_table_structure = st.checkbox("Include table structure", value=False)
+
     if st.button("Reset stored items"):
         try:
             if DATA_PATH.exists():
@@ -64,6 +72,11 @@ with upload_tab:
             try:
                 response = httpx.post(
                     f"{API_BASE_URL}/documents/upload",
+                    params={
+                        "include_chunks": str(include_chunks).lower(),
+                        "include_ocr": str(include_ocr).lower(),
+                        "include_table_structure": str(include_table_structure).lower()
+                    },
                     files=files,
                     timeout=600.0,
                 )

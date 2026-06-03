@@ -1,6 +1,7 @@
 import shutil
 import uuid
 from pathlib import Path
+import logging
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
@@ -9,6 +10,8 @@ from backend.core.rag.parser import parse_pdf
 from backend.core.rag.embedder import embed_text
 from backend.core.rag.llm import ask
 from backend.core.storage.vector_store import get_all_chunks, search, store_chunks
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -20,6 +23,8 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 async def upload_pdf(
     file: UploadFile = File(...),
     include_chunks: bool = False,
+    include_ocr: bool = False,
+    include_table_structure: bool = False,
     max_chunks: int | None = None,
 ):
     if not file.filename.lower().endswith(".pdf"):
@@ -31,7 +36,7 @@ async def upload_pdf(
     with dest.open("wb") as f:
         shutil.copyfileobj(file.file, f)
 
-    chunks = parse_pdf(dest)
+    chunks = parse_pdf(dest, do_ocr=include_ocr, do_table_structure=include_table_structure)
 
     embeddings = [embed_text(chunk["text"]) for chunk in chunks]
     stored = store_chunks(doc_id, chunks, embeddings)
